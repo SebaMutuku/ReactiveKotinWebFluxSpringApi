@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "spring.r2dbc.host",
+      "type": "java.lang.String",
+      "description": "Description for spring.r2dbc.host."
+    },
+    {
+      "name": "server.logging.level.org.springframework.data.r2dbc=DEBUG",
+      "type": "java.lang.String",
+      "description": "Description for server.logging.level.org.springframework.data.r2dbc=DEBUG."
+    }
+  ] }

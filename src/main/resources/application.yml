@@ -1,0 +1,30 @@
+server:
+  port: 7870
+
+
+
+
+#spring:
+#  data:
+#    mongodb:
+#      host: localhost
+#      port: 27017
+#      database: MongoAndroid
+#      username: #
+#      password: #
+#  datasource:
+#    driver-class-name: Mo
+
+spring:
+  data:
+    mongodb:
+      authentication-database: MongoAndroid
+      username: admin
+      password: admin
+      database: MongoAndroid
+      port: 27017
+      host: localhost
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
