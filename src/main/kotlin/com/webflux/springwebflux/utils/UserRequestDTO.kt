@@ -8,7 +8,6 @@ import lombok.ToString
 @ToString
 @Getter
 @Setter
-class UserRequest  {
-    var username = ""
-    var password = ""
-}
+data class UserRequestDTO  (
+        val username: String = "",
+        val password: String = "")

@@ -1,5 +1,5 @@
 package com.webflux.springwebflux.utils
 
-class GeneralRequest<T>(payload: T) {
+class RequestDTO<T>(payload: T) {
     val payload = payload
 }

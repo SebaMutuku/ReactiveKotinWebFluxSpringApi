@@ -2,9 +2,10 @@ package com.webflux.springwebflux.services
 
 import com.webflux.springwebflux.entities.Users
 import com.webflux.springwebflux.repos.Usersrepo
-import com.webflux.springwebflux.utils.GeneralResponse
-import com.webflux.springwebflux.utils.UserRequest
-import com.webflux.springwebflux.utils.UserResponse
+import com.webflux.springwebflux.servicesimpl.UserServiceInterface
+import com.webflux.springwebflux.utils.ResponseDTO
+import com.webflux.springwebflux.utils.UserRequestDTO
+import com.webflux.springwebflux.utils.UserResponseDTO
 import lombok.extern.log4j.Log4j2
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -16,36 +17,39 @@ import java.util.*
 
 @Service
 @Log4j2
-class Usersservice {
-    @Autowired
-    lateinit var usersrepo: Usersrepo
-    lateinit var response: UserResponse
+class Usersservice @Autowired constructor(private var usersrepo: Usersrepo) : UserServiceInterface() {
 
-    fun login(request: UserRequest): Mono<UserResponse> {
-        val users: Mono<Users> = usersrepo.findByUsername(request.username)
-        response.message = "No Data Found"
-        response.status = HttpStatus.NOT_FOUND
+
+    override fun login(request: UserRequestDTO): Mono<UserResponseDTO> {
+        val users = usersrepo.findByUsername(request.username)
+        val response = UserResponseDTO(
+                token = "",
+                message = "Invalid credentials",
+                status = HttpStatus.UNAUTHORIZED)
         return users.map { u ->
-            u.userId = 1
             u.lastLogin = Date(2021)
             u.isActive = true
             u.token = "yayauueyya"
             usersrepo.save(u)
-            response.message = "Success"
-            response.token = "users"
-            response.status = HttpStatus.ACCEPTED
-            response
+            u
+        }.map { user ->
+            response.copy(
+                    token = user.token,
+                    status = HttpStatus.OK,
+                    message = "Successfully logged in"
+
+            )
         }
-            .map { responseValues ->
-                responseValues?.log()
-                responseValues
-            }.switchIfEmpty(response)
 
     }
 
 
-    fun createUser(request: UserRequest): Mono<Users> {
-        var users = Users()
+    override fun createUser(request: UserRequestDTO): Mono<ResponseDTO> {
+        val response = ResponseDTO(
+                message = "Invalid credentials",
+                status = HttpStatus.UNAUTHORIZED,
+                payload = null)
+        val users = Users()
         users.createdOn = Date(2021)
         users.password = request.password
         users.username = request.username
@@ -59,60 +63,64 @@ class Usersservice {
 
         return usersrepo.findByUsername(request.username).map { user ->
             user
-        }
-            .switchIfEmpty(
-                usersrepo.save(
-                    users
+        }.switchIfEmpty(
+                usersrepo.save(users
                 )
-            ).map { user ->
-                print("User $user saved in db\n")
-                user
-            }
+        ).map { user ->
+            response.copy(
+                    status = HttpStatus.UNAUTHORIZED,
+                    payload = user,
+                    message = "Success"
+            )
+        }
     }
 
-    fun deleteUser(request: UserRequest): Mono<UserResponse> {
-        var response = UserResponse()
-        response.message = "User ${request.username} not found"
-        response.status = HttpStatus.NOT_FOUND
-        response.token = ""
-        return usersrepo.findByUsername(request.username).map { user ->
-            response.message = "Successfully deleted user ${user.username}"
-            response.status = HttpStatus.ACCEPTED
-            response.token = ""
-            response
-        }.doOnNext { response ->
-            response
-        }.switchIfEmpty(response)
+    override fun deleteUser(user: Users): Mono<UserResponseDTO> {
+
+        val response = UserResponseDTO(
+                token = "",
+                message = "Not found",
+                status = HttpStatus.NOT_FOUND)
+        return usersrepo.findByUserId(user.userId).doOnNext { user -> usersrepo.delete(user) }.map { deleted ->
+            response.copy(
+                    status = HttpStatus.OK,
+                    message = deleted.token
+            )
+        }
     }
 
-    fun updateUser(userRequest: UserRequest): Mono<Users> {
+    override fun updateUser(userRequest: UserRequestDTO): Mono<ResponseDTO> {
+        val response = ResponseDTO(
+                message = "Invalid credentials",
+                status = HttpStatus.UNAUTHORIZED,
+                payload = null)
         return usersrepo.findByUsername(userRequest.username).doOnNext { user ->
             user.username = "sebastianMm"
             user.phonenumber = "072753818"
-            user
-
+        }.flatMap { user ->
+            usersrepo.save(user)
+        }.map { user ->
+            response.copy(
+                    payload = user,
+                    message = "Success"
+            )
         }
-            .flatMap { user ->
-                usersrepo.save(user)
-            }.map { user -> user }
     }
 
-    fun findAllUsers(): Flux<GeneralResponse> {
-        var response = GeneralResponse()
-        response.message = "Not Found"
-        response.status = HttpStatus.NOT_FOUND
-        response.payload = null
+    override fun findAllUsers(): Flux<ResponseDTO> {
+        val response = ResponseDTO(
+                message = "Invalid credentials",
+                status = HttpStatus.UNAUTHORIZED,
+                payload = null)
         return usersrepo.findAll().map { user ->
             user
         }.map { user ->
-            response.message = "Successfully found user"
-            response.status = HttpStatus.FOUND
-            response.payload = user
-            response
+            response.copy(
+                    payload = user,
+                    message = "Success",
+                    status = HttpStatus.OK
+            )
         }
-//            .switchIfEmpty(response).flatMap { response ->
-//                response
-//            }
     }
 
 
