@@ -12,6 +12,7 @@ import javax.persistence.Id
 @Document
 @ToString
 @Data
+@Builder
 data class Users(
     @Id
     @Generated
