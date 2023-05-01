@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
 
 @Repository
-interface Usersrepo : ReactiveMongoRepository<Users, Long> {
+interface UserRepository : ReactiveMongoRepository<Users, Long> {
     fun findByUsername(username: String): Mono<Users>
     fun findByUserId(userid:Int):Mono<Users>
 }
